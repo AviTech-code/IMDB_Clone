@@ -1,2 +1,2 @@
 # IMDB_Clone
-This is a clone similar like IMDB where users can able to the details movie and reviews
+This is a clone similar to IMDB where users can get the details and ratings of movies.
