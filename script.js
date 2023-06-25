@@ -1,5 +1,5 @@
 
-
+const mainContainer = document.querySelector('.mainContainer');
 const my_items = document.querySelector('.cardContainer');
 const my_fav_items = document.querySelector('.favContainer');
 const searchMovies = document.getElementById('search-Movie');
@@ -9,6 +9,7 @@ const imgContainer = document.querySelectorAll('.imgContainer');
 const movieTitle = document.querySelectorAll('.title');
 const img = Array.from(document.querySelectorAll('.my-image'));
 const favIcon = document.querySelectorAll('.fa-heart');
+const favButton = document.querySelector('.favButton');
 
 //This is a Menu Bar
 $('.fa-bars').click(function () {
@@ -206,6 +207,24 @@ function favouriteMovie(movieItem) {
     }
 
 }
+
+favButton.addEventListener('click', (element) => {
+    console.log(element.target.id);
+    console.log(element);
+    if (element.target.id == "") {
+        my_fav_items.style.display = 'block';
+        my_fav_items.style.width = '100%';
+        mainContainer.innerHTML = "";
+        mainContainer.append(my_fav_items);
+        element.target.id = "1";
+    }
+    else {
+        my_fav_items.style.display = 'none';
+        mainContainer.append(my_items);
+        element.target.id = "";
+    }
+});
+
 
 //To delete items from favourite list
 
