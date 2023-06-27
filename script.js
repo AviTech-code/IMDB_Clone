@@ -10,11 +10,25 @@ const movieTitle = document.querySelectorAll('.title');
 const img = Array.from(document.querySelectorAll('.my-image'));
 const favIcon = document.querySelectorAll('.fa-heart');
 const favButton = document.querySelector('.favButton');
+const trendingUrl = 'https://api.themoviedb.org/3/trending/movie/day?api_key=d38c44868c7ca917b9b10951b794493b&language=en-US&append_to_response=videos';
 
 //This is a Menu Bar
 $('.fa-bars').click(function () {
     $('#menuBar').toggle("slide");
 });
+
+async function trendingMovies() {
+    try {
+        const response = await fetch(`${trendingUrl}`);
+        const data = await response.json();
+        displayMovieList(data.results);
+        // console.log(data.results);
+
+    } catch (err) {
+        alert(`Error: ${err}`)
+    };
+}
+trendingMovies();
 
 //This is an api Call for the movie according to the search
 async function apiCall(searchTerm) {
@@ -37,7 +51,8 @@ searchMovies.addEventListener('keyup', () => {
     if (movieItem.length != 0) {
         apiCall(movieItem);
     } else {
-        deleteChild(my_items);
+        // deleteChild(my_items);
+        trendingMovies();
     }
 
 });
@@ -113,7 +128,7 @@ async function getMovieInDetail(movieElement, mediaType) {
             const URl = `https://api.themoviedb.org/3/tv/${movieElement.getAttribute('id')}?api_key=d38c44868c7ca917b9b10951b794493b&language=en-US`;
             const res = await fetch(`${URl}`);
             const data = await res.json();
-            console.log(data);
+            // console.log(data);
             renderMovieInDetail(data);
         }
         catch (error) {
@@ -125,7 +140,7 @@ async function getMovieInDetail(movieElement, mediaType) {
 
 // This will display the movie details 
 function renderMovieInDetail(movie) {
-    console.log(movie);
+    // console.log(movie);
     my_items.innerHTML = '';
     let movieDetailCard = document.createElement('div');
     movieDetailCard.classList.add('detail-movie-card');
@@ -142,6 +157,10 @@ function renderMovieInDetail(movie) {
 				<span>${movie.vote_average}</span>
 			</div>
 		</div>
+        <div class="videoBtn">
+        <button onclick='playVideo(${movie.id},"${movie.status}")'><i class="fa-solid fa-play" style="color : white; font-size:1.3rem"></i> <span> Trailer<span></button>
+            
+        </div>
 		<div class="detail-movie-plot">
 			<p>${movie.overview}</p>
 			<p>Release date : ${movie.release_date}</p>
@@ -163,6 +182,10 @@ function renderMovieInDetail(movie) {
 				<span>${movie.vote_average}</span>
 			</div>
 		</div>
+        <div class="videoBtn">
+        <button onclick='playVideo(${movie.id},"${movie.status}")'><i class="fa-solid fa-play" style="color : white; font-size:1.3rem"></i> <span> Trailer<span></button>
+            
+        </div>
 		<div class="detail-movie-plot">
 			<p>${movie.overview}</p>
 			<p>Release date : ${movie.first_air_date}</p>
@@ -172,6 +195,53 @@ function renderMovieInDetail(movie) {
 	`;
     }
     my_items.append(movieDetailCard);
+}
+
+
+async function playVideo(movieId, mediaStatus) {
+    var videoPlayer = document.createElement('div');
+    videoPlayer.classList.add('myVideo');
+    // console.log(mediaStatus)
+    if (mediaStatus == "Released") {
+        var response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=d38c44868c7ca917b9b10951b794493b&language=en-US`);
+        var data = await response.json();
+        // console.log(data.results);
+    }
+    else {
+        var response = await fetch(`https://api.themoviedb.org/3/tv/${movieId}/videos?api_key=d38c44868c7ca917b9b10951b794493b&language=en-US`);
+        var data = await response.json();
+        // console.log(data.results.length);
+    }
+
+    if (data.results.length > 0) {
+        try {
+            data.results.forEach(element => {
+                if (element.type === "Trailer") {
+                    // console.log(element);
+                    const videoUrl = `https://www.youtube.com/embed/${element.key}`;
+                    videoPlayer.innerHTML = `
+                    <h2 class="videoStop" onclick="stopTrailer()"><span>X</span></h2>
+                <iframe src="${videoUrl}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+              `;
+                }
+            });
+        } catch (error) {
+            console.error(error);
+        }
+        my_items.innerHTML = '';
+        my_items.append(videoPlayer);
+
+    }
+    else {
+        alert("No Trailers Found");
+    }
+}
+
+
+function stopTrailer() {
+    my_items.innerHTML = '';
+    trendingMovies();
+
 }
 
 //To add movies on Favourite list
