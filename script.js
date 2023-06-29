@@ -202,7 +202,7 @@ async function playVideo(movieId, mediaStatus) {
     var videoPlayer = document.createElement('div');
     videoPlayer.classList.add('myVideo');
     // console.log(mediaStatus)
-    if (mediaStatus == "Released") {
+    if (mediaStatus == "Released" || mediaStatus == "Post Production") {
         var response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=d38c44868c7ca917b9b10951b794493b&language=en-US`);
         var data = await response.json();
         // console.log(data.results);
