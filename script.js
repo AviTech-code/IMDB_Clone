@@ -11,12 +11,12 @@ const img = Array.from(document.querySelectorAll('.my-image'));
 const favIcon = document.querySelectorAll('.fa-heart');
 const favButton = document.querySelector('.favButton');
 const trendingUrl = 'https://api.themoviedb.org/3/trending/movie/day?api_key=d38c44868c7ca917b9b10951b794493b&language=en-US&append_to_response=videos';
-
+let movieId = [];
 //This is a Menu Bar
 $('.fa-bars').click(function () {
     $('#menuBar').toggle("slide");
 });
-
+//This will display the list of trending movies
 async function trendingMovies() {
     try {
         const response = await fetch(`${trendingUrl}`);
@@ -29,6 +29,20 @@ async function trendingMovies() {
     };
 }
 trendingMovies();
+
+// This is a search event listener whenever user presses key on searchBar 
+searchMovies.addEventListener('keyup', () => {
+    let movieItem = (searchMovies.value).trim();
+ //   console.log(movieItem);
+    if (movieItem.length != 0) {
+        apiCall(movieItem);
+    } else {
+        // deleteChild(my_items);
+        trendingMovies();
+    }
+
+});
+
 
 //This is an api Call for the movie according to the search
 async function apiCall(searchTerm) {
@@ -45,17 +59,7 @@ async function apiCall(searchTerm) {
         console.error(error);
     }
 }
-// This is a search event listener whenever user presses key on searchBar 
-searchMovies.addEventListener('keyup', () => {
-    let movieItem = (searchMovies.value).trim();
-    if (movieItem.length != 0) {
-        apiCall(movieItem);
-    } else {
-        // deleteChild(my_items);
-        trendingMovies();
-    }
 
-});
 // This is function that will display the list of movies
 function displayMovieList(movie) {
 
@@ -69,9 +73,11 @@ function displayMovieList(movie) {
 
             movieCard.classList.add('card');
             movieCard.setAttribute('id', `${movie[i].id}`);
-            // console.log(movieCard.getAttribute('id'))
+        //     console.log(movieCard.getAttribute('id'));
+             let movieID = movieCard.getAttribute('id');
+             // let movies = "movies";
             movieCard.innerHTML = `
-            <div id="${movie[i].id}" class="imgContainer" >
+            <div id="${movie[i].id}" class="imgContainer" onclick="getMovieInDetail(${movieID}, 'movie')">
             <img src="https://image.tmdb.org/t/p/w500${movie[i].poster_path}" alt="Image Not Available" class="my-image">
         </div>
         <div class="titleContainer">
@@ -80,11 +86,12 @@ function displayMovieList(movie) {
         </div>
             `
         }
-        if (movie[i].poster_path != null && movie[i].media_type == 'tv') {
+        if (movie[i].poster_path != null && movie[i].media_type === 'tv') {
             movieCard.classList.add('card');
             movieCard.setAttribute('id', `${movie[i].id}`);
+            let movieID = movieCard.getAttribute('id');
             movieCard.innerHTML = `
-            <div id="${movie[i].id}" class="imgContainer">
+            <div id="${movie[i].id}" class="imgContainer" onclick="getMovieInDetail(${movieID}, 'tv')">
             <img src="https://image.tmdb.org/t/p/w500${movie[i].poster_path}" alt="Image Not Available" class="my-image">
         </div>
         <div class="titleContainer">
@@ -93,11 +100,12 @@ function displayMovieList(movie) {
         </div>
             `
         }
-
+        // console.log(movieCard);
+        // console.log(mediaType);
         my_items.append(movieCard);
-        movieCard.addEventListener('click', () => {
-            getMovieInDetail(movieCard, mediaType);
-        });
+        // movieCard.addEventListener('click', () => {
+        //     getMovieInDetail(movieCard, mediaType);
+        // });
 
     }
 
@@ -105,13 +113,14 @@ function displayMovieList(movie) {
 }
 //get the detail of a specific movies from API and display it in DOM
 //This function is called when user clicks on particular movie card
-async function getMovieInDetail(movieElement, mediaType) {
+async function getMovieInDetail(movieID, mediaType) {
 
+console.log(movieID + " " + mediaType);
     //if the mediaType is movie then movie details will get called
     if (mediaType === 'movie') {
         try {
 
-            const URl = `https://api.themoviedb.org/3/movie/${movieElement.getAttribute('id')}?api_key=d38c44868c7ca917b9b10951b794493b&language=en-US`;
+            const URl = `https://api.themoviedb.org/3/movie/${movieID}?api_key=d38c44868c7ca917b9b10951b794493b&language=en-US`;
             const res = await fetch(`${URl}`);
             const data = await res.json();
             // console.log(data);
@@ -125,7 +134,7 @@ async function getMovieInDetail(movieElement, mediaType) {
     else {
         try {
 
-            const URl = `https://api.themoviedb.org/3/tv/${movieElement.getAttribute('id')}?api_key=d38c44868c7ca917b9b10951b794493b&language=en-US`;
+            const URl = `https://api.themoviedb.org/3/tv/${movieID}?api_key=d38c44868c7ca917b9b10951b794493b&language=en-US`;
             const res = await fetch(`${URl}`);
             const data = await res.json();
             // console.log(data);
@@ -140,7 +149,7 @@ async function getMovieInDetail(movieElement, mediaType) {
 
 // This will display the movie details 
 function renderMovieInDetail(movie) {
-    // console.log(movie);
+    console.log(movie);
     my_items.innerHTML = '';
     let movieDetailCard = document.createElement('div');
     movieDetailCard.classList.add('detail-movie-card');
@@ -201,6 +210,7 @@ function renderMovieInDetail(movie) {
 async function playVideo(movieId, mediaStatus) {
     var videoPlayer = document.createElement('div');
     videoPlayer.classList.add('myVideo');
+
     // console.log(mediaStatus)
     if (mediaStatus == "Released" || mediaStatus == "Post Production") {
         var response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=d38c44868c7ca917b9b10951b794493b&language=en-US`);
@@ -245,16 +255,19 @@ function stopTrailer() {
 }
 
 //To add movies on Favourite list
-let movieId = 0;
-function favouriteMovie(movieItem) {
 
+function favouriteMovie(movieItem) {
+//console.log(movieItem);
     let child1 = movieItem.children[0].children[0].currentSrc;
     let child2 = movieItem.children[1].children[0].innerHTML;
 
-    console.log(movieItem);
+    // console.log(movieItem);
     // console.log(child1);
     // console.log(child2);
-    if (movieId != movieItem.getAttribute('id')) {
+    movieId.push(movieItem.getAttribute('id'));
+    let boolVal = new Set(movieId).size !== movieId.length;
+    console.log(boolVal);
+    if (!boolVal) {
         const favouriteItem = document.createElement('div');
         favouriteItem.setAttribute('id', movieItem.getAttribute('id'));
         favouriteItem.classList.add('favItems');
@@ -264,16 +277,17 @@ function favouriteMovie(movieItem) {
     <p class="title">${child2}</p>
 </span>
 <span class="deleteIcon">
-    <i class="fa-solid fa-trash" style="color: #e4ff1a;" onclick="deleteMyItem(this.parentElement.parentElement)"></i>
+    <i class="fa-solid fa-trash" style="color: #e4ff1a;" onclick="deleteMyItem(this.parentElement.parentElement, ${favouriteItem.getAttribute('id')})"></i>
 </span>`
 
         my_fav_items.append(favouriteItem);
-        console.log(my_fav_items.children);
-        console.log(favouriteItem);
-        movieId = movieItem.getAttribute('id');
+        // console.log(my_fav_items.children);
+        // console.log(favouriteItem);
+       // movieId = movieItem.getAttribute('id');
     }
     else {
-        alert('This movie is already added')
+        alert('This movie is already added');
+        movieId.pop(movieItem.getAttribute('id'));
     }
 
 }
@@ -298,8 +312,12 @@ favButton.addEventListener('click', (element) => {
 
 //To delete items from favourite list
 
-function deleteMyItem(element) {
+function deleteMyItem(element, id) {
+     console.log(id);
+    console.log(movieId);
     element.remove();
+    movieId = movieId.filter((item) => item != id);
+    console.log(movieId);
 }
 
 
